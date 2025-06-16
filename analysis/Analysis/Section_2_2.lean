@@ -141,7 +141,17 @@ theorem Nat.add_eq_zero (a b:Nat) (hab: a + b = 0) : a = 0 ∧ b = 0 := by
 
 /-- Lemma 2.2.10 (unique predecessor) / Exercise 2.2.2 -/
 lemma Nat.uniq_succ_eq (a:Nat) (ha: a.isPos) : ∃! b, b++ = a := by
-
+  -- Note this ∃! is not really in any examples
+  -- of lean proofs so far in this chapter so might want changing
+  revert a
+  apply induction
+  . intro h
+    contradiction
+  intro n ih ip
+  use n
+  constructor
+  simp
+  simp
 
 /-- Definition 2.2.11 (Ordering of the natural numbers) -/
 instance Nat.instLE : LE Nat where
@@ -178,21 +188,64 @@ example : (8:Nat) > 5 := by
   decide
 
 theorem Nat.succ_gt (n:Nat) : n++ > n := by
-  sorry
+  rw [Nat.gt_iff_lt]
+  rw [Nat.lt_iff]
+  constructor
+  . use 1
+    rw [Nat.succ_eq_add_one]
+
+  revert n; apply induction
+  simp
+  intro n hn
+  by_contra h2
+  apply Nat.succ_cancel at h2
+  rw [← h2 ] at hn
+  contradiction
 
 /-- Proposition 2.2.12 (Basic properties of order for natural numbers) / Exercise 2.2.3
 
 (a) (Order is reflexive). -/
 theorem Nat.ge_refl (a:Nat) : a ≥ a := by
-  sorry
+  use 0
+  simp
 
 /-- (b) (Order is transitive) -/
 theorem Nat.ge_trans {a b c:Nat} (hab: a ≥ b) (hbc: b ≥ c) : a ≥ c := by
-  sorry
+  rw[Nat.ge_iff_le] at hab
+  rw[Nat.ge_iff_le] at hbc
+  -- This is a bit hard given there's no other proof with this
+  obtain ⟨ m, hm⟩ := hab
+  obtain ⟨ n, hn⟩ := hbc
+  use m + n
+  rw[hn] at hm
+  rw [hm]
+  rw[add_assoc]
+  rw[add_comm n m]
+
+
+
 
 /-- (c) (Order is anti-symmetric)  -/
 theorem Nat.ge_antisymm {a b:Nat} (hab: a ≥ b) (hba: b ≥ a) : a = b := by
-  sorry
+  rw[Nat.ge_iff_le] at hab
+  rw[Nat.ge_iff_le] at hba
+  obtain ⟨ m, hm⟩ := hab
+  obtain ⟨ n, hn⟩ := hba
+  have hnm0 : n + m = 0 := by
+    rw[hm] at hn
+    rw[add_assoc, ] at hn
+    nth_rewrite 1 [← Nat.add_zero b] at hn
+    apply Nat.add_cancel_left at hn
+    rw[add_comm]
+    symm
+    assumption
+  have hn0: n = 0 := by
+    apply Nat.add_eq_zero at hnm0
+    exact hnm0.left
+  rw [hn0]  at hn
+  rw[Nat.add_zero] at hn
+  symm
+  assumption
 
 /-- (d) (Addition preserves order)  -/
 theorem Nat.add_ge_add_right (a b c:Nat) : a ≥ b ↔ a + c ≥ b + c := by
