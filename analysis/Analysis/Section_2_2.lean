@@ -249,7 +249,21 @@ theorem Nat.ge_antisymm {a b:Nat} (hab: a ≥ b) (hba: b ≥ a) : a = b := by
 
 /-- (d) (Addition preserves order)  -/
 theorem Nat.add_ge_add_right (a b c:Nat) : a ≥ b ↔ a + c ≥ b + c := by
-  sorry
+  constructor
+  . intro h
+    obtain ⟨m, hm⟩ := h
+    use m
+    rw[hm]
+    rw[add_assoc]
+    rw[add_comm m c]
+    rw[add_assoc]
+  intro h
+  obtain ⟨m, hm⟩ := h
+  use m
+  rw[add_assoc, add_comm c m, ← add_assoc, add_comm, add_comm (b+ m)] at hm
+  apply Nat.add_cancel_left at hm
+  assumption
+
 
 /-- (d) (Addition preserves order)  -/
 theorem Nat.add_ge_add_left (a b c:Nat) : a ≥ b ↔ c + a ≥ c + b := by
@@ -264,7 +278,46 @@ theorem Nat.add_le_add_left (a b c:Nat) : a ≤ b ↔ c + a ≤ c + b := add_ge_
 
 /-- (e) a < b iff a++ ≤ b. -/
 theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
+  constructor
+  . intro h
+    rw[Nat.lt_iff] at h
+    obtain ⟨ m, hm⟩ := h.left
+    rw [hm]
+
+    by_cases hm2: m = 0
+    . rw[hm2, Nat.add_zero] at hm
+      obtain ⟨ h1,h2⟩ := h
+      symm at hm
+      contradiction
+    have hmp: isPos m:= by
+      sorry
+    obtain ⟨n, ⟨hn1,_ ⟩ ⟩ := (Nat.uniq_succ_eq m hmp)
+    use n
+    rw[succ_add]
+    rw[← add_succ]
+    rw [hn1]
+  intro h
+  obtain ⟨ m, hm⟩ := h
+
+  constructor
+  use m+ 1
+  rw[hm]
+  rw[succ_eq_add_one]
+  rw[add_comm m 1]
+  rw [add_assoc]
+  by_contra h
+  rw [hm] at h
+  rw[succ_eq_add_one] at h
   sorry
+
+
+
+
+
+
+
+
+
 
 /-- (f) a < b if and only if b = a + d for positive d. -/
 theorem Nat.lt_iff_add_pos (a b:Nat) : a < b ↔ ∃ d:Nat, d.isPos ∧ b = a + d := by
@@ -291,7 +344,8 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
   -- this proof is written to follow the structure of the original text.
   revert a; apply induction
   . have why : 0 ≤ b := by
-      sorry
+      use b
+      rw[zero_add]
     replace why := (Nat.le_iff_lt_or_eq _ _).mp why
     tauto
   intro a ih
