@@ -323,7 +323,27 @@ theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
 
 /-- (f) a < b if and only if b = a + d for positive d. -/
 theorem Nat.lt_iff_add_pos (a b:Nat) : a < b ↔ ∃ d:Nat, d.isPos ∧ b = a + d := by
-  sorry
+  constructor <;> intro h
+  rw[lt_iff_succ_le] at h
+  obtain ⟨ m, hm⟩ := h
+  use m +1
+  constructor
+  . rw[← succ_eq_add_one]
+    unfold isPos
+    tauto
+  . rw[hm]
+    rw[succ_eq_add_one, add_assoc, add_comm m 1]
+  obtain ⟨ d, hdpos, hd⟩ := h
+  rw[lt_iff_succ_le]
+  obtain ⟨n, ⟨hn1,_ ⟩ ⟩ := (Nat.uniq_succ_eq d hdpos)
+  use n
+  calc
+    b = a + d := by
+      rw[hd]
+    _ = a + n++ := by rw[← hn1]
+    _ = (a + n)++ := by rw[add_succ]
+    _ = a++ + n := by rw[succ_add]
+
 
 /-- If a < b then a ̸= b,-/
 theorem Nat.ne_of_lt (a b:Nat) : a < b → a ≠ b := by
@@ -355,9 +375,24 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
   . rw [lt_iff_succ_le] at case1
     rw [Nat.le_iff_lt_or_eq] at case1
     tauto
-  . have why : a++ > b := by sorry
+  . have why : a++ > b := by
+      rw [gt_iff_lt]
+      rw [lt_iff_succ_le]
+      use 0
+      rw[case2, add_zero]
     tauto
-  have why : a++ > b := by sorry
+  have why : a++ > b := by
+        rw [gt_iff_lt]
+        rw [gt_iff_lt] at case3
+        rw[lt_iff_add_pos] at case3
+        obtain ⟨ d, hdpos, hd⟩ := case3
+        rw[lt_iff_add_pos]
+        use d+ 1
+        constructor
+        . unfold isPos
+          rw[← succ_eq_add_one]
+          tauto
+        rw[succ_eq_add_one, hd, add_assoc]
   tauto
 
 /-- (Not from textbook) Establish the decidability of this order computably.  The portion of the proof involving decidability has been provided; the remaining sorries involve claims about the natural numbers.  One could also have established this result by the `classical` tactic followed by `exact Classical.decRel _`, but this would make this definition (as well as some instances below) noncomputable. -/
