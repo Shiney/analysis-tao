@@ -290,7 +290,9 @@ theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
       symm at hm
       contradiction
     have hmp: isPos m:= by
-      sorry
+      unfold isPos
+      assumption
+
     obtain ⟨n, ⟨hn1,_ ⟩ ⟩ := (Nat.uniq_succ_eq m hmp)
     use n
     rw[succ_add]
@@ -308,12 +310,12 @@ theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
   by_contra h
   rw [hm] at h
   rw[succ_eq_add_one] at h
-  sorry
-
-
-
-
-
+  nth_rewrite 1 [←add_zero a] at h
+  rw[add_assoc] at h
+  apply add_cancel_left at h
+  rw[add_comm] at h
+  rw [← succ_eq_add_one] at h
+  contradiction
 
 
 
@@ -398,7 +400,8 @@ instance Nat.isOrderedAddMonoid : IsOrderedAddMonoid Nat where
 /-- Proposition 2.2.14 (Strong principle of induction) / Exercise 2.2.5
 -/
 theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop} (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) : ∀ m, m ≥ m₀ → P m := by
-  sorry
+  apply induction
+
 
 /-- Exercise 2.2.6 (backwards induction) -/
 theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}  (hind: ∀ m, P (m++) → P m) (hn: P n) : ∀ m, m ≤ n → P m := by
