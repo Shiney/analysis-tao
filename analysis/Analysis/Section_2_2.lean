@@ -399,20 +399,47 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
 def Nat.le_dec : (a b : Nat) → Decidable (a ≤ b)
   | 0, b => by
     apply isTrue
-    sorry
+    use b
+    rw [zero_add]
   | a++, b => by
     cases le_dec a b with
     | isTrue h =>
       cases decEq a b with
       | isTrue h =>
         apply isFalse
-        sorry
-      | isFalse h =>
+        intro h2
+        have h3 : a++   ≥ b := by
+          use 1
+          rw[h, succ_eq_add_one]
+        have h4 : a++ = b := by
+          apply Nat.ge_antisymm h3
+          rw[Nat.ge_iff_le]
+          tauto
+        rw [h, succ_eq_add_one] at h4
+        nth_rewrite 2 [← Nat.add_zero b] at h4
+        apply Nat.add_cancel_left at h4
+        tauto
+
+      | isFalse h1 =>
         apply isTrue
-        sorry
+        have h2: a < b := by
+          constructor <;> assumption
+        rw[Nat.lt_iff_add_pos] at h2
+        obtain ⟨d, hdpos, hd⟩ := h2
+        obtain ⟨n, hn, hn2⟩ := Nat.uniq_succ_eq d hdpos
+        use n
+        rw [hd, ← hn]
+        rw [succ_add,add_succ]
+
     | isFalse h =>
       apply isFalse
-      sorry
+      by_contra h2
+      have h3 : b ≥ a := by
+        obtain ⟨m, hm⟩ := h2
+        use m + 1
+        rw [hm, succ_add, ← add_assoc, succ_eq_add_one]
+      rw[Nat.ge_iff_le] at h3
+      contradiction
 
 instance Nat.decidableRel : DecidableRel (· ≤ · : Nat → Nat → Prop) := Nat.le_dec
 
@@ -435,8 +462,7 @@ instance Nat.isOrderedAddMonoid : IsOrderedAddMonoid Nat where
 /-- Proposition 2.2.14 (Strong principle of induction) / Exercise 2.2.5
 -/
 theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop} (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) : ∀ m, m ≥ m₀ → P m := by
-  apply induction
-
+  sorry
 
 /-- Exercise 2.2.6 (backwards induction) -/
 theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}  (hind: ∀ m, P (m++) → P m) (hn: P n) : ∀ m, m ≤ n → P m := by
